@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movies - StreamHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .movie-card {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .movie-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+        
+        .sidebar {
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .content-area {
+            margin-left: 280px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .content-area {
+                margin-left: 0;
+            }
+        }
+        
+        .nav-item {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+        }
+        
+        .nav-item:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateX(8px);
+        }
+        
+        .nav-item.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .genre-filter {
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .genre-filter:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+        
+        .genre-filter.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: rgba(102, 126, 234, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <div class="fixed left-0 top-0 h-full w-72 sidebar z-50 hidden lg:block">
+        <div class="p-6">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-play text-white text-xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white">StreamHub</h1>
+            </div>
+            
+            <nav class="space-y-3">
+                <a href="index.html" class="nav-item flex items-center space-x-3 px-4 py-3 text-gray-300">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="movies.html" class="nav-item active flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-film"></i>
+                    <span>Movies</span>
+                </a>
+                <a href="sports.html" class="nav-item flex items-center space-x-3 px-4 py-3 text-gray-300">
+                    <i class="fas fa-football-ball"></i>
+                    <span>Live Sports</span>
+                </a>
+                <a href="search.html" class="nav-item flex items-center space-x-3 px-4 py-3 text-gray-300">
+                    <i class="fas fa-search"></i>
+                    <span>Search</span>
+                </a>
+                <a href="watchlist.html" class="nav-item flex items-center space-x-3 px-4 py-3 text-gray-300">
+                    <i class="fas fa-bookmark"></i>
+                    <span>Watchlist</span>
+                </a>
+            </nav>
+            
+            <div class="mt-8 p-4 glass-effect rounded-xl">
+                <h3 class="text-white font-semibold mb-2">Quick Stats</h3>
+                <div class="space-y-2 text-sm text-gray-300">
+                    <div class="flex justify-between">
+                        <span>Movies Available</span>
+                        <span class="text-blue-400">2,847</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Live Sports</span>
+                        <span class="text-green-400">23</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Your Watchlist</span>
+                        <span class="text-purple-400">12</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-black bg-opacity-90 backdrop-blur-lg border-t border-gray-800 z-50">
+        <div class="flex justify-around py-3">
+            <a href="index.html" class="flex flex-col items-center space-y-1 text-gray-400">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-xs">Home</span>
+            </a>
+            <a href="movies.html" class="flex flex-col items-center space-y-1 text-blue-400">
+                <i class="fas fa-film text-lg"></i>
+                <span class="text-xs">Movies</span>
+            </a>
+            <a href="sports.html" class="flex flex-col items-center space-y-1 text-gray-400">
+                <i class="fas fa-football-ball text-lg"></i>
+                <span class="text-xs">Sports</span>
+            </a>
+            <a href="search.html" class="flex flex-col items-center space-y-1 text-gray-400">
+                <i class="fas fa-search text-lg"></i>
+                <span class="text-xs">Search</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-area min-h-screen pb-20 lg:pb-0">
+        <!-- Header -->
+        <header class="p-6 pb-0">
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-4xl font-bold text-white">Movies</h1>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" id="movieSearch" placeholder="Search movies..." 
+                               class="w-64 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
+                        <i class="fas fa-search absolute right-3 top-2.5 text-gray-400"></i>
+                    </div>
+                    <button class="p-2 glass-effect rounded-lg text-white hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Genre Filters -->
+            <div class="flex flex-wrap gap-3 mb-6">
+                <button class="genre-filter active px-4 py-2 text-white rounded-lg transition-all" data-genre="">
+                    All Movies
+                </button>
+                <button class="genre-filter px-4 py-2 text-gray-300 rounded-lg transition-all" data-genre="28">
+                    Action
+                </button>
+                <button class="genre-filter px-4 py-2 text-gray-300 rounded-lg transition-all" data-genre="35">
+                    Comedy
+                </button>
+                <button class="genre-filter px-4 py-2 text-gray-300 rounded-lg transition-all" data-genre="18">
+                    Drama
+                </button>
+                <button class="genre-filter px-4 py-2 text-gray-300 rounded-lg transition-all" data-genre="27">
+                    Horror
+                </button>
+                <button class="genre-filter px-4 py-2 text-gray-300 rounded-lg transition-all" data-genre="10749">
+                    Romance
+                </button>
+                <button class="genre-filter px-4 py-2 text-gray-300 rounded-lg transition-all" data-genre="878">
+                    Sci-Fi
+                </button>
+                <button class="genre-filter px-4 py-2 text-gray-300 rounded-lg transition-all" data-genre="12">
+                    Adventure
+                </button>
+            </div>
+        </header>
+
+        <!-- Movies Grid -->
+        <div class="p-6 pt-0">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" id="moviesGrid">
+                <!-- Movies will be loaded here -->
+            </div>
+            
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="flex justify-center items-center py-8 hidden">
+                <div class="loading-spinner"></div>
+            </div>
+            
+            <!-- Load More Button -->
+            <div class="flex justify-center mt-8">
+                <button id="loadMoreBtn" class="px-8 py-3 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-700 transition-all">
+                    <i class="fas fa-plus mr-2"></i>Load More Movies
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movie Detail Modal -->
+    <div id="movieModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 rounded-xl max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="relative">
+                <button onclick="closeModal()" class="absolute top-4 right-4 z-10 w-10 h-10 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-white hover:bg-opacity-75">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div id="modalContent">
+                    <!-- Modal content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Player Modal -->
+    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 hidden">
+        <div class="bg-black rounded-xl max-w-6xl w-full mx-4">
+            <div class="relative">
+                <button onclick="closeVideoModal()" class="absolute top-4 right-4 z-10 w-10 h-10 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-white hover:bg-opacity-75">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="video-player aspect-video">
+                    <video id="mainVideoPlayer" class="w-full h-full" controls>
+                        <source src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-white font-semibold" id="videoTitle">Movie Title</span>
+                    </div>
+                    <div class="quality-selector flex space-x-2">
+                        <button class="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600" onclick="changeQuality('720p')">720p</button>
+                        <button class="px-3 py-1 bg-blue-600 text-white rounded text-sm" onclick="changeQuality('1080p')">1080p</button>
+                        <button class="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600" onclick="changeQuality('4K')">4K</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Movies page specific functionality
+        class MoviesPage {
+            constructor() {
+                this.apiKey = 'af9948790c4e5a90eadd97d97530a9c1';
+                this.baseUrl = 'https://api.themoviedb.org/3';
+                this.imageBaseUrl = 'https://image.tmdb.org/t/p/w500';
+                this.currentPage = 1;
+                this.currentGenre = '';
+                this.searchQuery = '';
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadMovies();
+                this.setupGenreFilters();
+            }
+
+            setupEventListeners() {
+                // Search functionality
+                const searchInput = document.getElementById('movieSearch');
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => {
+                        this.searchQuery = e.target.value;
+                        this.currentPage = 1;
+                        this.loadMovies();
+                    });
+                }
+
+                // Load more button
+                const loadMoreBtn = document.getElementById('loadMoreBtn');
+                if (loadMoreBtn) {
+                    loadMoreBtn.addEventListener('click', () => this.loadMoreMovies());
+                }
+            }
+
+            setupGenreFilters() {
+                const genreButtons = document.querySelectorAll('.genre-filter');
+                genreButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        // Remove active class from all buttons
+                        genreButtons.forEach(btn => {
+                            btn.classList.remove('active', 'bg-gradient-to-r', 'from-purple-500', 'to-blue-600');
+                            btn.classList.add('text-gray-300');
+                        });
+                        
+                        // Add active class to clicked button
+                        button.classList.add('active', 'bg-gradient-to-r', 'from-purple-500', 'to-blue-600');
+                        button.classList.remove('text-gray-300');
+                        button.classList.add('text-white');
+                        
+                        // Update current genre
+                        this.currentGenre = button.dataset.genre;
+                        this.currentPage = 1;
+                        this.loadMovies();
+                    });
+                });
+            }
+
+            async loadMovies(append = false) {
+                const spinner = document.getElementById('loadingSpinner');
+                if (!append) {
+                    spinner.classList.remove('hidden');
+                }
+
+                try {
+                    let url = `${this.baseUrl}/discover/movie?api_key=${this.apiKey}&page=${this.currentPage}&sort_by=popularity.desc`;
+                    
+                    if (this.currentGenre) {
+                        url += `&with_genres=${this.currentGenre}`;
+                    }
+                    
+                    if (this.searchQuery) {
+                        url = `${this.baseUrl}/search/movie?api_key=${this.apiKey}&query=${encodeURIComponent(this.searchQuery)}&page=${this.currentPage}`;
+                    }
+
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    
+                    if (append) {
+                        this.appendMovies(data.results);
+                    } else {
+                        this.displayMovies(data.results);
+                    }
+                } catch (error) {
+                    console.error('Error loading movies:', error);
+                    if (append) {
+                        this.appendMovies(this.getMockMovies());
+                    } else {
+                        this.displayMovies(this.getMockMovies());
+                    }
+                } finally {
+                    spinner.classList.add('hidden');
+                }
+            }
+
+            displayMovies(movies) {
+                const container = document.getElementById('moviesGrid');
+                if (!container) return;
+
+                if (movies.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <i class="fas fa-film text-6xl text-gray-600 mb-4"></i>
+                            <h3 class="text-2xl font-bold text-white mb-2">No movies found</h3>
+                            <p class="text-gray-400">Try adjusting your search or filter criteria</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = movies.map(movie => `
+                    <div class="movie-card rounded-xl overflow-hidden cursor-pointer group" onclick="moviesPage.showMovieDetail(${movie.id})">
+                        <div class="relative">
+                            <img src="${movie.poster_path ? this.imageBaseUrl + movie.poster_path : 'https://via.placeholder.com/300x450?text=No+Image'}" 
+                                 alt="${movie.title}" class="w-full h-80 object-cover">
+                            <div class="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-sm">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                ${movie.vote_average.toFixed(1)}
+                            </div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <div class="absolute bottom-4 left-4 right-4 space-y-2">
+                                    <button class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onclick="event.stopPropagation(); moviesPage.playMovie(${movie.id})">
+                                        <i class="fas fa-play mr-2"></i>Watch Now
+                                    </button>
+                                    <button class="w-full py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors" onclick="event.stopPropagation(); moviesPage.toggleWatchlist(${movie.id})">
+                                        <i class="fas fa-bookmark mr-2"></i>Add to Watchlist
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="text-white font-semibold truncate mb-2">${movie.title}</h4>
+                            <p class="text-gray-400 text-sm mb-2">${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">HD</span>
+                                    <span class="text-xs text-gray-400">${Math.floor(Math.random() * 60 + 90)} min</span>
+                                </div>
+                                <button onclick="event.stopPropagation(); moviesPage.toggleWatchlist(${movie.id})" class="text-gray-400 hover:text-yellow-400 transition-colors">
+                                    <i class="fas fa-bookmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            appendMovies(movies) {
+                const container = document.getElementById('moviesGrid');
+                if (!container) return;
+
+                const newMovies = movies.map(movie => `
+                    <div class="movie-card rounded-xl overflow-hidden cursor-pointer group" onclick="moviesPage.showMovieDetail(${movie.id})">
+                        <div class="relative">
+                            <img src="${movie.poster_path ? this.imageBaseUrl + movie.poster_path : 'https://via.placeholder.com/300x450?text=No+Image'}" 
+                                 alt="${movie.title}" class="w-full h-80 object-cover">
+                            <div class="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-sm">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                ${movie.vote_average.toFixed(1)}
+                            </div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <div class="absolute bottom-4 left-4 right-4 space-y-2">
+                                    <button class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onclick="event.stopPropagation(); moviesPage.playMovie(${movie.id})">
+                                        <i class="fas fa-play mr-2"></i>Watch Now
+                                    </button>
+                                    <button class="w-full py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors" onclick="event.stopPropagation(); moviesPage.toggleWatchlist(${movie.id})">
+                                        <i class="fas fa-bookmark mr-2"></i>Add to Watchlist
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="text-white font-semibold truncate mb-2">${movie.title}</h4>
+                            <p class="text-gray-400 text-sm mb-2">${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">HD</span>
+                                    <span class="text-xs text-gray-400">${Math.floor(Math.random() * 60 + 90)} min</span>
+                                </div>
+                                <button onclick="event.stopPropagation(); moviesPage.toggleWatchlist(${movie.id})" class="text-gray-400 hover:text-yellow-400 transition-colors">
+                                    <i class="fas fa-bookmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML += newMovies;
+            }
+
+            loadMoreMovies() {
+                this.currentPage++;
+                this.loadMovies(true);
+            }
+
+            async showMovieDetail(movieId) {
+                try {
+                    const response = await fetch(`${this.baseUrl}/movie/${movieId}?api_key=${this.apiKey}`);
+                    const movie = await response.json();
+                    
+                    const modal = document.getElementById('movieModal');
+                    const modalContent = document.getElementById('modalContent');
+                    
+                    modalContent.innerHTML = `
+                        <div class="relative">
+                            <img src="${movie.backdrop_path ? this.imageBaseUrl + movie.backdrop_path : 'https://via.placeholder.com/1200x600?text=No+Image'}" 
+                                 alt="${movie.title}" class="w-full h-96 object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 right-0 p-8">
+                                <h2 class="text-4xl font-bold text-white mb-4">${movie.title}</h2>
+                                <div class="flex items-center space-x-4 mb-4">
+                                    <span class="text-yellow-400">
+                                        <i class="fas fa-star"></i> ${movie.vote_average.toFixed(1)}
+                                    </span>
+                                    <span class="text-gray-300">${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</span>
+                                    <span class="text-gray-300">${movie.runtime || Math.floor(Math.random() * 60 + 90)} min</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <div class="lg:col-span-2">
+                                    <h3 class="text-2xl font-bold text-white mb-4">Overview</h3>
+                                    <p class="text-gray-300 mb-6">${movie.overview || 'No overview available for this movie.'}</p>
+                                    
+                                    <div class="flex space-x-4 mb-6">
+                                        <button onclick="moviesPage.playMovie(${movie.id})" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all">
+                                            <i class="fas fa-play mr-2"></i>Watch Now
+                                        </button>
+                                        <button onclick="moviesPage.toggleWatchlist(${movie.id})" class="px-6 py-3 bg-gray-700 text-white rounded-xl font-semibold hover:bg-gray-600 transition-all">
+                                            <i class="fas fa-bookmark mr-2"></i>Add to Watchlist
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-white mb-4">Movie Info</h4>
+                                    <div class="space-y-3">
+                                        <div>
+                                            <span class="text-gray-400">Release Date:</span>
+                                            <span class="text-white ml-2">${movie.release_date || 'N/A'}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400">Genres:</span>
+                                            <span class="text-white ml-2">${movie.genres ? movie.genres.map(g => g.name).join(', ') : 'N/A'}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400">Runtime:</span>
+                                            <span class="text-white ml-2">${movie.runtime || Math.floor(Math.random() * 60 + 90)} min</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400">Rating:</span>
+                                            <span class="text-white ml-2">${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}/10</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    modal.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Error loading movie details:', error);
+                    this.showNotification('Error loading movie details', 'error');
+                }
+            }
+
+            playMovie(movieId) {
+                const modal = document.getElementById('videoModal');
+                const videoPlayer = document.getElementById('mainVideoPlayer');
+                const videoTitle = document.getElementById('videoTitle');
+                
+                // Use the actual vidking.net player with TMDB ID
+                const playerUrl = `https://www.vidking.net/embed/movie/${movieId}?color=9146ff&autoPlay=true`;
+                
+                // Create iframe for the video player
+                videoPlayer.innerHTML = `
+                    <iframe src="${playerUrl}" 
+                            width="100%" 
+                            height="100%" 
+                            frameborder="0" 
+                            allowfullscreen
+                            allow="autoplay; encrypted-media">
+                    </iframe>
+                `;
+                
+                videoTitle.textContent = `Movie ${movieId}`;
+                modal.classList.remove('hidden');
+                
+                // Close movie detail modal if open
+                this.closeModal();
+                
+                // Set up progress tracking
+                this.setupProgressTracking();
+            }
+            
+            setupProgressTracking() {
+                window.addEventListener("message", function (event) {
+                    if (typeof event.data === "string") {
+                        try {
+                            const data = JSON.parse(event.data);
+                            if (data.type === "PLAYER_EVENT") {
+                                console.log("Player Event:", data.data);
+                                
+                                // Store progress in localStorage
+                                if (data.data.event === "timeupdate") {
+                                    const progressData = {
+                                        id: data.data.id,
+                                        progress: data.data.progress,
+                                        currentTime: data.data.currentTime,
+                                        duration: data.data.duration,
+                                        timestamp: Date.now()
+                                    };
+                                    localStorage.setItem(`movie_progress_${data.data.id}`, JSON.stringify(progressData));
+                                }
+                            }
+                        } catch (e) {
+                            console.log("Message received from the player:", event.data);
+                        }
+                    }
+                });
+            }
+
+            toggleWatchlist(movieId) {
+                let watchlist = JSON.parse(localStorage.getItem('streamhub_watchlist') || '[]');
+                const index = watchlist.indexOf(movieId);
+                
+                if (index > -1) {
+                    watchlist.splice(index, 1);
+                    this.showNotification('Removed from watchlist', 'success');
+                } else {
+                    watchlist.push(movieId);
+                    this.showNotification('Added to watchlist', 'success');
+                }
+                
+                localStorage.setItem('streamhub_watchlist', JSON.stringify(watchlist));
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-white font-medium transform translate-x-full transition-transform duration-300 ${
+                    type === 'success' ? 'bg-green-600' : 
+                    type === 'error' ? 'bg-red-600' : 'bg-blue-600'
+                }`;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.remove('translate-x-full');
+                }, 100);
+                
+                setTimeout(() => {
+                    notification.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 3000);
+            }
+
+            closeModal() {
+                const modal = document.getElementById('movieModal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                }
+            }
+
+            getMockMovies() {
+                return [
+                    { id: 1, title: "Inception", poster_path: "/9gk7adHYeDvHkCSE2Av0N1MIHZQt.jpg", backdrop_path: "/s3TshRGB4iBxP2lya4SehrH6v6M.jpg", vote_average: 8.8, release_date: "2010-07-16", overview: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.", runtime: 148 },
+                    { id: 2, title: "The Dark Knight", poster_path: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg", backdrop_path: "/nG5zmbVeY4r6GfVTJ5sX5fC7JdI.jpg", vote_average: 9.0, release_date: "2008-07-18", overview: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.", runtime: 152 },
+                    { id: 3, title: "Interstellar", poster_path: "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg", backdrop_path: "/xJHokMbljvjADYdit5fK5VQsXEG.jpg", vote_average: 8.6, release_date: "2014-11-07", overview: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.", runtime: 169 },
+                    { id: 4, title: "The Matrix", poster_path: "/f89U1ADr1oiT1k9EeLlk9JVgP9n.jpg", backdrop_path: "/lh5lbisD4Y9fEqibwTp8O1l7Ub1.jpg", vote_average: 8.7, release_date: "1999-03-31", overview: "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.", runtime: 136 },
+                    { id: 5, title: "Pulp Fiction", poster_path: "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg", backdrop_path: "/suaEOtk1N1sgg2MTM7oZd2cfVp3.jpg", vote_average: 8.9, release_date: "1994-10-14", overview: "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.", runtime: 154 },
+                    { id: 6, title: "The Shawshank Redemption", poster_path: "/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg", backdrop_path: "/kXfqcdQrfl2X7QFhz5D2lA5ac43.jpg", vote_average: 9.3, release_date: "1994-09-23", overview: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.", runtime: 142 },
+                    { id: 7, title: "Fight Club", poster_path: "/pB8BM7pdSp6B6Ih7Qzp4bPBha1Z.jpg", backdrop_path: "/hZkgoQYus5vegHoetLkCJzb17zJ.jpg", vote_average: 8.8, release_date: "1999-10-15", overview: "An insomniac office worker and a devil-may-care soapmaker form an underground fight club that evolves into something much, much more.", runtime: 139 },
+                    { id: 8, title: "Forrest Gump", poster_path: "/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg", backdrop_path: "/7c9UVPPiT4t3B9MRB8dL9F8Tu5y.jpg", vote_average: 8.8, release_date: "1994-07-06", overview: "The presidencies of Kennedy and Johnson, the Vietnam War, the Watergate scandal and other historical events unfold from the perspective of an Alabama man with an IQ of 75.", runtime: 142 },
+                    { id: 9, title: "The Godfather", poster_path: "/3bhkrj58Vtu7enYsRolD1fF3pct.jpg", backdrop_path: "/rSPw7tgCH9c6NqICZef4kZjFOQ5.jpg", vote_average: 9.2, release_date: "1972-03-24", overview: "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.", runtime: 175 },
+                    { id: 10, title: "Avengers: Endgame", poster_path: "/or06FN3Dka5XukozJDp4te8iAV4.jpg", backdrop_path: "/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg", vote_average: 8.4, release_date: "2019-04-26", overview: "After the devastating events of Avengers: Infinity War, the universe is in ruins. With the help of remaining allies, the Avengers assemble once more in order to reverse Thanos' actions and restore balance to the universe.", runtime: 181 }
+                ];
+            }
+        }
+
+        // Global functions
+        function closeModal() {
+            const modal = document.getElementById('movieModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            const videoPlayer = document.getElementById('mainVideoPlayer');
+            if (modal) {
+                modal.classList.add('hidden');
+                if (videoPlayer) {
+                    videoPlayer.pause();
+                }
+            }
+        }
+
+        function changeQuality(quality) {
+            console.log(`Changed quality to: ${quality}`);
+            // Update quality buttons
+            const buttons = document.querySelectorAll('.quality-selector button');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-blue-600');
+                btn.classList.add('bg-gray-700');
+            });
+            
+            event.target.classList.remove('bg-gray-700');
+            event.target.classList.add('bg-blue-600');
+        }
+
+        // Initialize the movies page
+        const moviesPage = new MoviesPage();
+    </script>
+</body>
+</html>

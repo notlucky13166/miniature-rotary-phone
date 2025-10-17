@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Sports - StreamHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sport-card {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .sport-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+        
+        .live-indicator {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .sidebar {
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .content-area {
+            margin-left: 280px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .content-area {
+                margin-left: 0;
+            }
+        }
+        
+        .nav-item {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+        }
+        
+        .nav-item:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateX(8px);
+        }
+        
+        .nav-item.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .sport-filter {
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .sport-filter:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+        
+        .sport-filter.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: rgba(102, 126, 234, 0.8);
+        }
+        
+        .score-display {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .team-logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .video-player {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <div class="fixed left-0 top-0 h-full w-72 sidebar z-50 hidden lg:block">
+        <div class="p-6">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-play text-white text-xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white">StreamHub</h1>
+            </div>
+            
+            <nav class="space-y-3">
+                <a href="index.html" class="nav-item flex items-center space-x-3 px-4 py-3 text-gray-300">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="movies.html" class="nav-item flex items-center space-x-3 px-4 py-3 text-gray-300">
+                    <i class="fas fa-film"></i>
+                    <span>Movies</span>
+                </a>
+                <a href="sports.html" class="nav-item active flex items-center space-x-3 px-4 py-3 text-white">
+                    <i class="fas fa-football-ball"></i>
+                    <span>Live Sports</span>
+                </a>
+                <a href="search.html" class="nav-item flex items-center space-x-3 px-4 py-3 text-gray-300">
+                    <i class="fas fa-search"></i>
+                    <span>Search</span>
+                </a>
+                <a href="watchlist.html" class="nav-item flex items-center space-x-3 px-4 py-3 text-gray-300">
+                    <i class="fas fa-bookmark"></i>
+                    <span>Watchlist</span>
+                </a>
+            </nav>
+            
+            <div class="mt-8 p-4 glass-effect rounded-xl">
+                <h3 class="text-white font-semibold mb-2">Live Stats</h3>
+                <div class="space-y-2 text-sm text-gray-300">
+                    <div class="flex justify-between">
+                        <span>Live Events</span>
+                        <span class="text-green-400" id="liveCount">12</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Upcoming</span>
+                        <span class="text-blue-400" id="upcomingCount">8</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Completed</span>
+                        <span class="text-gray-400" id="completedCount">15</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-black bg-opacity-90 backdrop-blur-lg border-t border-gray-800 z-50">
+        <div class="flex justify-around py-3">
+            <a href="index.html" class="flex flex-col items-center space-y-1 text-gray-400">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-xs">Home</span>
+            </a>
+            <a href="movies.html" class="flex flex-col items-center space-y-1 text-gray-400">
+                <i class="fas fa-film text-lg"></i>
+                <span class="text-xs">Movies</span>
+            </a>
+            <a href="sports.html" class="flex flex-col items-center space-y-1 text-green-400">
+                <i class="fas fa-football-ball text-lg"></i>
+                <span class="text-xs">Sports</span>
+            </a>
+            <a href="search.html" class="flex flex-col items-center space-y-1 text-gray-400">
+                <i class="fas fa-search text-lg"></i>
+                <span class="text-xs">Search</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-area min-h-screen pb-20 lg:pb-0">
+        <!-- Header -->
+        <header class="p-6 pb-0">
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-4xl font-bold text-white">Live Sports</h1>
+                <div class="flex items-center space-x-4">
+                    <div class="live-indicator flex items-center space-x-2 bg-red-600 text-white px-3 py-1 rounded-full">
+                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                        <span class="text-sm font-semibold">LIVE</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sport Filters -->
+            <div class="flex flex-wrap gap-3 mb-6">
+                <button class="sport-filter active px-4 py-2 text-white rounded-lg" data-sport="">
+                    All Sports
+                </button>
+                <button class="sport-filter px-4 py-2 text-gray-300 rounded-lg" data-sport="football">
+                    <i class="fas fa-football-ball mr-2"></i>Football
+                </button>
+                <button class="sport-filter px-4 py-2 text-gray-300 rounded-lg" data-sport="basketball">
+                    <i class="fas fa-basketball-ball mr-2"></i>Basketball
+                </button>
+                <button class="sport-filter px-4 py-2 text-gray-300 rounded-lg" data-sport="tennis">
+                    <i class="fas fa-table-tennis mr-2"></i>Tennis
+                </button>
+                <button class="sport-filter px-4 py-2 text-gray-300 rounded-lg" data-sport="cricket">
+                    <i class="fas fa-cricket mr-2"></i>Cricket
+                </button>
+                <button class="sport-filter px-4 py-2 text-gray-300 rounded-lg" data-sport="baseball">
+                    <i class="fas fa-baseball-ball mr-2"></i>Baseball
+                </button>
+            </div>
+        </header>
+
+        <!-- Sports Events -->
+        <div class="p-6 pt-0">
+            <!-- Live Events -->
+            <section class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                        <i class="fas fa-circle text-red-500 mr-2 live-indicator"></i>
+                        Live Now
+                    </h2>
+                    <span class="text-gray-400 text-sm" id="liveEventsCount">6 events</span>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="liveSportsGrid">
+                    <!-- Live sports will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Upcoming Events -->
+            <section class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                        <i class="fas fa-clock text-blue-400 mr-2"></i>
+                        Upcoming Events
+                    </h2>
+                    <span class="text-gray-400 text-sm" id="upcomingEventsCount">4 events</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="upcomingSportsGrid">
+                    <!-- Upcoming sports will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Recent Results -->
+            <section>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                        <i class="fas fa-trophy text-yellow-400 mr-2"></i>
+                        Recent Results
+                    </h2>
+                    <span class="text-gray-400 text-sm" id="recentEventsCount">8 events</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="recentSportsGrid">
+                    <!-- Recent sports results will be loaded here -->
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Video Player Modal -->
+    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 hidden">
+        <div class="bg-black rounded-xl max-w-6xl w-full mx-4">
+            <div class="relative">
+                <button onclick="closeVideoModal()" class="absolute top-4 right-4 z-10 w-10 h-10 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-white hover:bg-opacity-75">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="video-player aspect-video">
+                    <div id="mainVideoPlayer" class="w-full h-full">
+                        <!-- Video player will be loaded here -->
+                    </div>
+                </div>
+                <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-white font-semibold" id="videoTitle">Live Sports Event</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="live-indicator flex items-center space-x-2 bg-red-600 text-white px-3 py-1 rounded-full">
+                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                            <span class="text-sm font-semibold">LIVE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sports page functionality
+        class SportsPage {
+            constructor() {
+                this.baseUrl = 'https://streamed.pk/api';
+                this.currentSport = '';
+                this.sportsData = null;
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadSportsData();
+                this.setupSportFilters();
+            }
+
+            setupEventListeners() {
+                // Add any additional event listeners here
+            }
+
+            setupSportFilters() {
+                const sportButtons = document.querySelectorAll('.sport-filter');
+                sportButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        // Remove active class from all buttons
+                        sportButtons.forEach(btn => {
+                            btn.classList.remove('active', 'bg-gradient-to-r', 'from-purple-500', 'to-blue-600');
+                            btn.classList.add('text-gray-300');
+                        });
+                        
+                        // Add active class to clicked button
+                        button.classList.add('active', 'bg-gradient-to-r', 'from-purple-500', 'to-blue-600');
+                        button.classList.remove('text-gray-300');
+                        button.classList.add('text-white');
+                        
+                        // Update current sport
+                        this.currentSport = button.dataset.sport;
+                        this.filterSports();
+                    });
+                });
+            }
+
+            async loadSportsData() {
+                try {
+                    // Use mock data for demonstration
+                    this.sportsData = this.getMockSportsData();
+                    console.log('Loaded sports data:', this.sportsData);
+                    this.displaySportsData();
+                } catch (error) {
+                    console.error('Error loading sports data:', error);
+                    this.sportsData = this.getMockSportsData();
+                    this.displaySportsData();
+                }
+            }
+
+            displaySportsData() {
+                console.log('Displaying sports data:', this.sportsData);
+                this.displayLiveSports();
+                this.displayUpcomingSports();
+                this.displayRecentSports();
+                this.updateStats();
+            }
+
+            displayLiveSports() {
+                const container = document.getElementById('liveSportsGrid');
+                if (!container || !this.sportsData) {
+                    console.log('No container or sports data');
+                    return;
+                }
+
+                const liveEvents = this.sportsData.filter(event => event.status === 'live');
+                console.log('Live events:', liveEvents);
+                
+                container.innerHTML = liveEvents.map(event => `
+                    <div class="sport-card rounded-xl p-6 cursor-pointer hover:bg-gray-800 transition-colors" onclick="sportsPage.watchSport('${event.id}')">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-${this.getSportIcon(event.sport)} text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-semibold">${event.sport}</h4>
+                                    <p class="text-gray-400 text-sm">${event.league}</p>
+                                </div>
+                            </div>
+                            <div class="live-indicator">
+                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="text-center">
+                                <div class="team-logo mx-auto mb-2">
+                                    ${event.team1.shortName}
+                                </div>
+                                <p class="text-white text-sm font-medium">${event.team1.name}</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="score-display rounded-lg px-4 py-2 mb-2">
+                                    <div class="text-2xl font-bold text-white">${event.score.team1} - ${event.score.team2}</div>
+                                    <div class="text-gray-400 text-sm">${event.time}</div>
+                                </div>
+                                <div class="text-gray-400 text-xs">${event.period}</div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="team-logo mx-auto mb-2">
+                                    ${event.team2.shortName}
+                                </div>
+                                <p class="text-white text-sm font-medium">${event.team2.name}</p>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all font-semibold">
+                            <i class="fas fa-play mr-2"></i>Watch Live
+                        </button>
+                    </div>
+                `).join('');
+
+                document.getElementById('liveEventsCount').textContent = `${liveEvents.length} events`;
+            }
+
+            displayUpcomingSports() {
+                const container = document.getElementById('upcomingSportsGrid');
+                if (!container || !this.sportsData) return;
+
+                const upcomingEvents = this.sportsData.filter(event => event.status === 'upcoming');
+                
+                container.innerHTML = upcomingEvents.map(event => `
+                    <div class="sport-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-${this.getSportIcon(event.sport)} text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-semibold">${event.sport}</h4>
+                                    <p class="text-gray-400 text-sm">${event.league}</p>
+                                </div>
+                            </div>
+                            <div class="text-blue-400">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="text-center">
+                                <div class="team-logo mx-auto mb-2">
+                                    ${event.team1.shortName}
+                                </div>
+                                <p class="text-white text-sm font-medium">${event.team1.name}</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="text-gray-400 text-sm mb-1">VS</div>
+                                <div class="text-white text-sm font-semibold">${event.date}</div>
+                                <div class="text-gray-400 text-xs">${event.time}</div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="team-logo mx-auto mb-2">
+                                    ${event.team2.shortName}
+                                </div>
+                                <p class="text-white text-sm font-medium">${event.team2.name}</p>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                            <i class="fas fa-bell mr-2"></i>Set Reminder
+                        </button>
+                    </div>
+                `).join('');
+
+                document.getElementById('upcomingEventsCount').textContent = `${upcomingEvents.length} events`;
+            }
+
+            displayRecentSports() {
+                const container = document.getElementById('recentSportsGrid');
+                if (!container || !this.sportsData) return;
+
+                const recentEvents = this.sportsData.filter(event => event.status === 'completed');
+                
+                container.innerHTML = recentEvents.map(event => `
+                    <div class="sport-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-${this.getSportIcon(event.sport)} text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-semibold">${event.sport}</h4>
+                                    <p class="text-gray-400 text-sm">${event.league}</p>
+                                </div>
+                            </div>
+                            <div class="text-yellow-400">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="text-center">
+                                <div class="team-logo mx-auto mb-2 ${event.winner === 'team1' ? 'ring-2 ring-yellow-400' : ''}">
+                                    ${event.team1.shortName}
+                                </div>
+                                <p class="text-white text-sm font-medium">${event.team1.name}</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-white">${event.score.team1} - ${event.score.team2}</div>
+                                <div class="text-gray-400 text-sm">Final</div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="team-logo mx-auto mb-2 ${event.winner === 'team2' ? 'ring-2 ring-yellow-400' : ''}">
+                                    ${event.team2.shortName}
+                                </div>
+                                <p class="text-white text-sm font-medium">${event.team2.name}</p>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-semibold">
+                            <i class="fas fa-redo mr-2"></i>Watch Replay
+                        </button>
+                    </div>
+                `).join('');
+
+                document.getElementById('recentEventsCount').textContent = `${recentEvents.length} events`;
+            }
+
+            updateStats() {
+                if (!this.sportsData) return;
+
+                const liveCount = this.sportsData.filter(event => event.status === 'live').length;
+                const upcomingCount = this.sportsData.filter(event => event.status === 'upcoming').length;
+                const completedCount = this.sportsData.filter(event => event.status === 'completed').length;
+
+                document.getElementById('liveCount').textContent = liveCount;
+                document.getElementById('upcomingCount').textContent = upcomingCount;
+                document.getElementById('completedCount').textContent = completedCount;
+            }
+
+            filterSports() {
+                this.displaySportsData();
+            }
+
+            watchSport(eventId) {
+                const modal = document.getElementById('videoModal');
+                const videoPlayer = document.getElementById('mainVideoPlayer');
+                const videoTitle = document.getElementById('videoTitle');
+                
+                // Mock live stream URL - in a real app, this would come from Streamed.pk API
+                const streamUrl = 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4';
+                
+                videoPlayer.innerHTML = `
+                    <video controls autoplay class="w-full h-full">
+                        <source src="${streamUrl}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                `;
+                
+                // Find the event name for the title
+                const event = this.sportsData?.find(e => e.id == eventId);
+                const eventName = event ? `${event.team1.name} vs ${event.team2.name}` : `Live Sports Event ${eventId}`;
+                
+                videoTitle.textContent = eventName;
+                modal.classList.remove('hidden');
+            }
+
+            getSportIcon(sport) {
+                const icons = {
+                    'Football': 'football-ball',
+                    'Basketball': 'basketball-ball',
+                    'Tennis': 'table-tennis',
+                    'Cricket': 'cricket',
+                    'Baseball': 'baseball-ball',
+                    'Soccer': 'football-ball',
+                    'Hockey': 'hockey-puck',
+                    'Golf': 'golf-ball'
+                };
+                return icons[sport] || 'gamepad';
+            }
+
+            getMockSportsData() {
+                return [
+                    {
+                        id: 1,
+                        sport: 'Football',
+                        league: 'Premier League',
+                        team1: { name: 'Liverpool', shortName: 'LIV' },
+                        team2: { name: 'Manchester City', shortName: 'MCI' },
+                        score: { team1: 2, team2: 1 },
+                        time: "78'",
+                        period: 'Second Half',
+                        status: 'live',
+                        date: 'Today',
+                        winner: null
+                    },
+                    {
+                        id: 2,
+                        sport: 'Basketball',
+                        league: 'NBA',
+                        team1: { name: 'Los Angeles Lakers', shortName: 'LAL' },
+                        team2: { name: 'Golden State Warriors', shortName: 'GSW' },
+                        score: { team1: 108, team2: 102 },
+                        time: 'Q4 5:23',
+                        period: 'Fourth Quarter',
+                        status: 'live',
+                        date: 'Today',
+                        winner: null
+                    },
+                    {
+                        id: 3,
+                        sport: 'Tennis',
+                        league: 'Wimbledon',
+                        team1: { name: 'Novak Djokovic', shortName: 'NDJ' },
+                        team2: { name: 'Rafael Nadal', shortName: 'RAN' },
+                        score: { team1: 2, team2: 1 },
+                        time: 'Set 4',
+                        period: 'Fourth Set',
+                        status: 'live',
+                        date: 'Today',
+                        winner: null
+                    },
+                    {
+                        id: 4,
+                        sport: 'Football',
+                        league: 'La Liga',
+                        team1: { name: 'Barcelona', shortName: 'BAR' },
+                        team2: { name: 'Real Madrid', shortName: 'RMA' },
+                        score: { team1: 1, team2: 1 },
+                        time: '65:12',
+                        period: 'Second Half',
+                        status: 'upcoming',
+                        date: 'Tomorrow',
+                        winner: null
+                    },
+                    {
+                        id: 5,
+                        sport: 'Basketball',
+                        league: 'EuroLeague',
+                        team1: { name: 'Real Madrid', shortName: 'RMB' },
+                        team2: { name: 'Olympiacos', shortName: 'OLY' },
+                        score: { team1: 85, team2: 79 },
+                        time: 'Final',
+                        period: 'Final',
+                        status: 'completed',
+                        date: 'Yesterday',
+                        winner: 'team1'
+                    },
+                    {
+                        id: 6,
+                        sport: 'Cricket',
+                        league: 'IPL',
+                        team1: { name: 'Mumbai Indians', shortName: 'MI' },
+                        team2: { name: 'Chennai Super Kings', shortName: 'CSK' },
+                        score: { team1: 156, team2: 142 },
+                        time: 'Final',
+                        period: 'Final',
+                        status: 'completed',
+                        date: 'Yesterday',
+                        winner: 'team1'
+                    },
+                    {
+                        id: 7,
+                        sport: 'Baseball',
+                        league: 'MLB',
+                        team1: { name: 'New York Yankees', shortName: 'NYY' },
+                        team2: { name: 'Boston Red Sox', shortName: 'BRS' },
+                        score: { team1: 0, team2: 0 },
+                        time: '19:00',
+                        period: 'Scheduled',
+                        status: 'upcoming',
+                        date: 'Tomorrow',
+                        winner: null
+                    },
+                    {
+                        id: 8,
+                        sport: 'Tennis',
+                        league: 'US Open',
+                        team1: { name: 'Carlos Alcaraz', shortName: 'CAL' },
+                        team2: { name: 'Daniil Medvedev', shortName: 'DME' },
+                        score: { team1: 3, team2: 0 },
+                        time: 'Final',
+                        period: 'Final',
+                        status: 'completed',
+                        date: '2 days ago',
+                        winner: 'team1'
+                    }
+                ];
+            }
+        }
+
+        // Global functions
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            const videoPlayer = document.getElementById('mainVideoPlayer');
+            if (modal) {
+                modal.classList.add('hidden');
+                videoPlayer.innerHTML = '';
+            }
+        }
+
+        // Initialize the sports page
+        const sportsPage = new SportsPage();
+    </script>
+</body>
+</html>
