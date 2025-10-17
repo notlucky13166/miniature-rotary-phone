@@ -555,7 +555,7 @@ class StreamHub {
         if (modal) {
             modal.classList.add('hidden');
             if (videoPlayer) {
-                videoPlayer.pause();
+                videoPlayer.innerHTML = '';
             }
         }
     }

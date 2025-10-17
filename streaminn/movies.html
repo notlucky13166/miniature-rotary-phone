@@ -264,10 +264,7 @@
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="video-player aspect-video">
-                    <video id="mainVideoPlayer" class="w-full h-full" controls>
-                        <source src="" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
+                    <div id="mainVideoPlayer" class="w-full h-full"></div>
                 </div>
                 <div class="p-4 flex items-center justify-between">
                     <div class="flex items-center space-x-4">
@@ -682,7 +679,7 @@
             if (modal) {
                 modal.classList.add('hidden');
                 if (videoPlayer) {
-                    videoPlayer.pause();
+                    videoPlayer.innerHTML = '';
                 }
             }
         }
